@@ -835,7 +835,7 @@ EntityEditor.defaultPrototypes =
 EntityEditor.goalPrototypes = {
 	deeds = {
 		welcome = {
-			proto="welcome(message='', type='')",
+			proto="welcome(message='', what='')",
 			args = {message="The greeting message.",type="The type of entity to react to."},
 			help = "Welcome entities of a given type that are created nearby."
 		},
@@ -1481,13 +1481,22 @@ end
 
 function EntityEditor:handleKnowledgeSelected(modelItem)
 	if modelItem.predicate == "location" then
-		_, _, entityid, x, y, z = string.find(modelItem.object, "%('(%d*)',%s*%(([%d%-%.]*),%s*([%d%-%.]*),%s*([%d%-%.]*)%)%)")
+		_, _, entityid, x, y, z = string.find(modelItem.object, "%('$eid:(%d*)',%s*%(([%d%-%.]*),%s*([%d%-%.]*),%s*([%d%-%.]*)%)%)")
 
 		if (entityid and x and y and z) then
 			local point = Ember.OgreView.Gui.EntityEditor:createPoint(tonumber(x), tonumber(y), tonumber(z))
 			self.instance.helper:addMarker(entityid, point)
 		else
-			self.instance.helper:removeMarker()
+		  --check with the syntax without parent
+      _, _, x, y, z = string.find(modelItem.object, "%(([%d%-%.]*),%s*([%d%-%.]*),%s*([%d%-%.]*)%)")
+  
+      if (x and y and z and self.instance.entity:getLocation()) then
+        local point = Ember.OgreView.Gui.EntityEditor:createPoint(tonumber(x), tonumber(y), tonumber(z))
+        local parentEntityId = self.instance.entity:getLocation():getId()
+        self.instance.helper:addMarker(parentEntityId, point)
+      else
+  			self.instance.helper:removeMarker()
+      end
 		end
 	else
 		self.instance.helper:removeMarker()
